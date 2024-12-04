@@ -22,4 +22,6 @@ This project allows users to generate a QR code for a given URL. It provides an 
 
    ```bash
    git clone https://github.com/yourusername/qr-code-maker.git
+## Try Now
+[QR Code Maker](https://aryannlol.github.io/qr-code-maker/)
 
