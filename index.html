@@ -229,22 +229,62 @@
             link.download = 'qrcode.png';
             link.click();
         }
-        function shareQR() {
-    const qrcodeDiv = document.getElementById('qrcode');
-    const canvas = qrcodeDiv.querySelector('canvas');
+        function createBrandedQRImage(originalCanvas) {
+    // Create a new canvas with extra space for branding
+    const brandedCanvas = document.createElement('canvas');
+    const padding = 20; // Padding around the QR code
+    const textHeight = 40; // Space for text
     
-    if (!canvas) {
+    // Set dimensions for the new canvas
+    brandedCanvas.width = originalCanvas.width + (padding * 2);
+    brandedCanvas.height = originalCanvas.height + (padding * 2) + textHeight;
+    
+    // Get context and set white background
+    const ctx = brandedCanvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, brandedCanvas.width, brandedCanvas.height);
+    
+    // Draw the QR code
+    ctx.drawImage(originalCanvas, padding, padding);
+    
+    // Add the branding text
+    ctx.fillStyle = '#1a1a2e'; // Match your site's dark blue color
+    ctx.font = 'bold 16px Inter'; // Using your site's font
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const text = 'Made with QR Craft Pro';
+    ctx.fillText(text, brandedCanvas.width / 2, brandedCanvas.height - (textHeight / 2));
+    
+    return brandedCanvas;
+}
+
+function downloadQR() {
+    const qrcodeCanvas = document.querySelector('#qrcode canvas');
+    if (!qrcodeCanvas) {
+        alert('Please generate a QR code first!');
+        return;
+    }
+    
+    const brandedCanvas = createBrandedQRImage(qrcodeCanvas);
+    const link = document.createElement('a');
+    link.href = brandedCanvas.toDataURL('image/png');
+    link.download = 'qrcode-craftpro.png';
+    link.click();
+}
+
+function shareQR() {
+    const qrcodeCanvas = document.querySelector('#qrcode canvas');
+    if (!qrcodeCanvas) {
         alert('Please generate a QR code first!');
         return;
     }
 
-    // Convert canvas to blob
-    canvas.toBlob(async (blob) => {
+    const brandedCanvas = createBrandedQRImage(qrcodeCanvas);
+    
+    brandedCanvas.toBlob(async (blob) => {
         try {
-            // Create file from blob
-            const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+            const file = new File([blob], 'qrcode-craftpro.png', { type: 'image/png' });
 
-            // Check if Web Share API is available and supports files
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     files: [file],
@@ -252,17 +292,15 @@
                     text: 'Check out this QR code generated with QR Craft Pro!'
                 });
             } else if (navigator.share) {
-                // Fallback to sharing without file if file sharing is not supported
                 await navigator.share({
                     title: 'QR Code from QR Craft Pro',
                     text: 'Check out this QR code generated with QR Craft Pro!',
                     url: window.location.href
                 });
             } else {
-                // Fallback for browsers that don't support Web Share API
                 const downloadLink = document.createElement('a');
-                downloadLink.href = canvas.toDataURL('image/png');
-                downloadLink.download = 'qrcode.png';
+                downloadLink.href = brandedCanvas.toDataURL('image/png');
+                downloadLink.download = 'qrcode-craftpro.png';
                 downloadLink.click();
                 alert('Direct sharing is not supported on this device. The QR code has been downloaded instead.');
             }
